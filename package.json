@@ -1,0 +1,25 @@
+{
+  "name": "mesh-cli-demo",
+  "version": "1.0.0",
+  "description": "Demo project showing how to install and use the Mesh CLI",
+  "private": true,
+  "scripts": {
+    "auth:login": "mesh auth login",
+    "auth:account": "mesh auth account",
+    "admin:list-tenants": "mesh admin list-tenants",
+    "auth:authorize": "mesh auth authorize --file ./scenarios/auth_authorize.json",
+    "auth:authorize-batch": "mesh auth authorize-batch --file ./scenarios/auth_authorize_batch.json",
+    "admin:create-tenant": "mesh admin create-tenant --file ./scenarios/admin_create_tenant.json",
+    "storage:create-bucket": "mesh storage create-bucket --file ./scenarios/storage_create_bucket.json"
+  },
+  "keywords": [
+    "mesh",
+    "cli",
+    "demo"
+  ],
+  "author": "Instruxi",
+  "license": "ISC",
+  "dependencies": {
+    "@instruxi-io/mesh-cli": "^0.1.0"
+  }
+}
