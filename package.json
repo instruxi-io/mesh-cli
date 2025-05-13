@@ -20,6 +20,6 @@
   "author": "Instruxi",
   "license": "ISC",
   "dependencies": {
-    "@instruxi-io/mesh-cli": "^0.1.0"
+    "@instruxi-io/mesh-cli": "^0.3.0"
   }
 }
