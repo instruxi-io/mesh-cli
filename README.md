@@ -1,71 +1,18 @@
-# Mesh CLI Demo
+# Mesh CLI
 
-This project demonstrates how to install and use the Mesh CLI in your own projects.
+Command Line Interface for Mesh SDK
 
 ## Installation
 
-### Using the Installation Script
-
-The easiest way to install the Mesh CLI is to use the provided installation script:
-
 ```bash
-# Make sure the script is executable
-chmod +x install.sh
+npm install
+npm run build
 
-# Run the installation script
-./install.sh
+# To install the CLI globally
+sudo npm link
 ```
 
-The script will:
-1. Check if npm or pnpm is installed
-2. Configure the package manager to use GitHub Packages
-3. Install the Mesh CLI
-4. Create a `.env` file from the `.env.example` template if it doesn't exist
-
-### Manual Installation
-
-You can also install the Mesh CLI manually:
-
-#### 1. Configure your package manager to use GitHub Packages
-
-```bash
-# For npm
-npm config set @instruxi-io:registry https://npm.pkg.github.com
-
-# For pnpm
-pnpm config set @instruxi-io:registry https://npm.pkg.github.com
-
-# For yarn
-yarn config set @instruxi-io:registry https://npm.pkg.github.com
-```
-
-#### 2. Install the CLI
-
-You can install the Mesh CLI globally:
-
-```bash
-# Using npm
-npm install -g @instruxi-io/mesh-cli
-
-# Using pnpm
-pnpm add -g @instruxi-io/mesh-cli
-
-# Using yarn
-yarn global add @instruxi-io/mesh-cli
-```
-
-Or you can install it as a dependency in your project:
-
-```bash
-# Using npm
-npm install @instruxi-io/mesh-cli
-
-# Using pnpm
-pnpm add @instruxi-io/mesh-cli
-
-# Using yarn
-yarn add @instruxi-io/mesh-cli
-```
+This will make the `mesh` command available globally in your terminal.
 
 ## Configuration
 
@@ -75,19 +22,11 @@ The CLI can be configured using environment variables or command line options:
 - `PRIVATE_KEY` - Your Ethereum private key for SIWE authentication
 - `API_URI` - The Mesh API URI (defaults to http://localhost:8080)
 
-You can create a `.env` file in your project directory with these variables:
+You can also create a `.env` file in the CLI directory with these variables.
 
-```
-API_KEY=your_api_key_here
-PRIVATE_KEY=your_private_key_here
-API_URI=https://your-api-endpoint.com
-```
+## Authentication
 
-## Usage
-
-### Direct CLI Usage
-
-Once installed globally, you can use the CLI directly:
+You can authenticate using either an API key or Sign-In With Ethereum (SIWE):
 
 ```bash
 # Login with API key
@@ -95,39 +34,13 @@ mesh auth login --api-key YOUR_API_KEY
 
 # Login with SIWE
 mesh auth login --private-key YOUR_PRIVATE_KEY
-
-# Get account details
-mesh auth account
-
-# List tenants
-mesh admin list-tenants
 ```
 
-### Using in npm/pnpm Scripts
+If you don't provide the keys as command line arguments, the CLI will prompt you for them.
 
-If you've installed the CLI as a project dependency, you can use it in your npm/pnpm scripts:
+## Available Commands
 
-```json
-{
-  "scripts": {
-    "auth:login": "mesh auth login",
-    "auth:account": "mesh auth account",
-    "admin:list-tenants": "mesh admin list-tenants"
-  }
-}
-```
-
-Then run:
-
-```bash
-npm run auth:login
-# or
-pnpm auth:login
-```
-
-## Example Commands
-
-### Authentication and Authorization
+### Authentication and Authorization (Enforcer)
 
 ```bash
 # Login
@@ -146,9 +59,15 @@ mesh auth activate-api-key --id API_KEY_ID
 mesh auth deactivate-api-key --id API_KEY_ID
 mesh auth delete-api-key --id API_KEY_ID
 
+# Terms and conditions
+mesh auth terms
+mesh auth accept-terms
+
 # Authorization
-mesh auth authorize --file ./scenarios/auth_authorize.json
-mesh auth authorize-batch --file ./scenarios/auth_authorize_batch.json
+mesh auth authorize --file ./scenarios/profile.json
+mesh auth authorize --json '{"action":"read","resource":"...","policy_id":"app.profile",...}'
+mesh auth authorize --file ./scenarios/profile.json --outfile
+mesh auth authorize-batch --file ./scenarios/batch.json
 ```
 
 ### Admin Operations
@@ -157,7 +76,7 @@ mesh auth authorize-batch --file ./scenarios/auth_authorize_batch.json
 # Tenant management
 mesh admin list-tenants
 mesh admin get-tenant --id TENANT_ID
-mesh admin create-tenant --file ./scenarios/admin_create_tenant.json
+mesh admin create-tenant --name "Tenant Name" --code "tenant-code"
 mesh admin update-tenant --id TENANT_ID --name "New Name" --description "New description"
 mesh admin delete-tenant --id TENANT_ID
 
@@ -169,49 +88,162 @@ mesh admin list-groups
 mesh admin list-groups --tenant-id TENANT_ID
 ```
 
-### Object Storage
+## Examples
+
+### Creating and using an API key
 
 ```bash
-# List buckets
-mesh storage list-buckets
+# Create a new API key
+mesh auth login --private-key YOUR_PRIVATE_KEY
+mesh auth create-api-key
+# Save the API key output
 
-# Create bucket
-mesh storage create-bucket --file ./scenarios/storage_create_bucket.json
-
-# Upload file
-mesh storage upload --bucket my-bucket --file ./path/to/file.txt --key file.txt
-
-# Download file
-mesh storage download --bucket my-bucket --key file.txt --output ./downloaded-file.txt
+# Use the API key for future operations
+mesh auth login --api-key YOUR_API_KEY
+mesh auth account
 ```
 
-## Using the Scenarios Directory
-
-This demo includes a `scenarios` directory with example JSON files for various CLI commands:
-
-- `auth_authorize.json`: Example for single authorization request
-- `auth_authorize_batch.json`: Example for batch authorization requests
-- `admin_create_tenant.json`: Example for creating a tenant
-- `storage_create_bucket.json`: Example for creating a storage bucket
-
-You can use these files with the corresponding CLI commands:
+### Checking if an account exists
 
 ```bash
-# Using the auth_authorize.json file
-mesh auth authorize --file ./scenarios/auth_authorize.json
+# Check if an account exists
+mesh auth account-exists --address 0xYOUR_ETHEREUM_ADDRESS
 
-# Using the auth_authorize_batch.json file
-mesh auth authorize-batch --file ./scenarios/auth_authorize_batch.json
-
-# Using the admin_create_tenant.json file
-mesh admin create-tenant --file ./scenarios/admin_create_tenant.json
-
-# Using the storage_create_bucket.json file
-mesh storage create-bucket --file ./scenarios/storage_create_bucket.json
+# If you're authenticated, you can also get your own account details
+mesh auth account
 ```
 
-You can also modify these files to suit your specific needs or create new ones for other commands.
+### Managing tenants
 
-## Advanced Usage
+```bash
+# List all tenants
+mesh admin list-tenants
 
-For more advanced usage and examples, refer to the [full CLI documentation](https://github.com/instruxi-io/mesh-sdk/tree/main/apps/cli).
+# Create a new tenant
+mesh admin create-tenant --name "Test Tenant" --code "test-tenant" --description "A test tenant"
+
+# Get tenant details
+mesh admin get-tenant --id TENANT_ID
+
+# Update tenant
+mesh admin update-tenant --id TENANT_ID --name "Updated Tenant" --active true
+
+# Delete tenant
+mesh admin delete-tenant --id TENANT_ID
+```
+
+### Authorization
+
+```bash
+# Single authorization from a JSON file
+mesh auth authorize --file ./scenarios/profile.json
+
+# Single authorization from a JSON string
+mesh auth authorize --json '{"action":"read","resource":"/api/v1/admin/profiles/list","policy_id":"app.profile","resource_type":"api","contexts":["profile"],"resource_metadata":{"method":"GET","attributes":["id","account_address","tenant_id","email","username"],"tenant_id":"00000000-0000-0000-0000-000000000002","account_address":"0x92F78491093bA0dd88A419b1BF07aeb3BA9fD0dc"}}'
+
+# Save authorization response to default file (tmp/my.json)
+mesh auth authorize --file ./scenarios/profile.json --outfile
+
+# Save authorization response to custom file
+mesh auth authorize --file ./scenarios/profile.json --outfile ./results/auth-response.json
+
+# Batch authorization from a JSON file
+mesh auth authorize-batch --file ./scenarios/batch.json
+
+# Save batch authorization response to file
+mesh auth authorize-batch --file ./scenarios/batch.json --outfile ./results/batch-response.json
+```
+
+#### Sample JSON Files
+
+For single authorization (`scenarios/profile.json`):
+```json
+{
+  "action": "read",
+  "resource": "/api/v1/admin/profiles/list",
+  "policy_id": "app.profile",
+  "resource_type": "api",
+  "contexts": ["profile"],
+  "resource_metadata": {
+    "method": "GET",
+    "attributes": ["id", "account_address", "tenant_id", "email", "username"],
+    "tenant_id": "00000000-0000-0000-0000-000000000002",
+    "account_address": "0x92F78491093bA0dd88A419b1BF07aeb3BA9fD0dc"
+  }
+}
+```
+
+For batch authorization (`scenarios/batch.json`):
+```json
+{
+  "policy_id": "app.profile",
+  "contexts": ["profile"],
+  "requests": [
+    {
+      "action": "read",
+      "resource": "/api/v1/admin/profiles/list",
+      "resource_type": "api",
+      "resource_metadata": {
+        "method": "GET",
+        "attributes": ["id", "account_address", "tenant_id", "email", "username"],
+        "tenant_id": "00000000-0000-0000-0000-000000000002",
+        "account_address": "0x92F78491093bA0dd88A419b1BF07aeb3BA9fD0dc"
+      }
+    },
+    {
+      "action": "write",
+      "resource": "/api/v1/admin/profile/create",
+      "resource_type": "api",
+      "resource_metadata": {
+        "method": "POST",
+        "attributes": ["account_address", "tenant_id", "email", "username"],
+        "tenant_id": "00000000-0000-0000-0000-000000000002",
+        "account_address": "0x92F78491093bA0dd88A419b1BF07aeb3BA9fD0dc"
+      }
+    }
+  ]
+}
+```
+
+## Development
+
+To run the CLI in development mode:
+
+```bash
+npm run dev -- [command] [options]
+```
+
+For example:
+
+```bash
+npm run dev -- auth login
+```
+
+## Troubleshooting
+
+### Module Not Found Errors
+
+If you encounter an error like `Cannot find module '@instruxi-io/mesh-sdk-core'` when running the CLI, it means the dependencies are not properly linked. Try these steps:
+
+1. Make sure the core SDK is built and linked:
+   ```bash
+   # From the mesh-sdk directory
+   cd packages/core
+   npm install
+   npm run build
+   npm link
+   ```
+
+2. Link the core SDK to the CLI:
+   ```bash
+   # From the CLI directory
+   npm link @instruxi-io/mesh-sdk-core
+   ```
+
+3. Rebuild and reinstall the CLI:
+   ```bash
+   npm run build
+   sudo npm link
+   ```
+
+This should resolve dependency issues by ensuring the CLI can find all required modules.
